@@ -31,10 +31,10 @@ cereal |>
 # Create the diamonds data set
 diamonds <- diamonds # built in to ggplot/tidyverse
 
-# Explore data
+# Explore data.
 glimpse(diamonds)
 
-# Create a scatter plot with transparent points
+# Create a scatter plot with transparent points.
 diamonds |>
   ggplot(aes(x = carat,
              y = price,
@@ -43,3 +43,4 @@ diamonds |>
              alpha = .7, # transparency from 0 to 1
              color = "blue",
              size = 3)
+
