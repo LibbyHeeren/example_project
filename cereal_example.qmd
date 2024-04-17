@@ -1,0 +1,96 @@
+---
+title: "Exploring The Cereal Data"
+author: "Libby Heeren"
+format: html
+---
+
+In this report, we'll explore the cereal data set[^1] from [our data set repository on GitHub](https://github.com/rfortherestofus/rin3-datasets/tree/main/getting-started-datasets/cereal).    
+
+[^1]: Nutrition info for 80 cereal products from the USA collected in the early 1990s
+```{r}
+#| include: false
+
+# Load packages
+library(tidyverse)
+library(skimr)
+library(gt)
+
+# Load data
+cereal <- read_csv("cereal.csv")
+```
+
+Let's take a look at the variables in the cereal data set.
+
+```{r}
+#| echo: false
+
+# Inspect the data
+skim(cereal)
+```
+<br>
+A few of the numeric variables are missing values, so we can keep that in mind as we analyze the data.  
+
+## Analyzing Cereal Weight  
+
+Let's look at the heaviest cereals by weight and see what they have in common. We will look at their name, weight, type (hot or cold), and their cups per serving.      
+
+```{r}
+cereal |>
+  select(name, type, weight_oz, cups_per_serv) |> 
+  arrange(desc(weight_oz)) |>
+  head(10) |> 
+  gt()
+```
+
+All of the heaviest cereals are cold and they all seem to contain fruit! Let's plot the average weight of cereals with fruit or raisin in the title against cereals without fruit or raisins to see what the difference is, on average. We'll have to make sure cereals like "Fruity Pebbles" don't sneak into our category!    
+
+First, we'll create a data set with a variable called `fruity` that we can use to categorize our cereals. 
+
+```{r}
+cereal <- 
+  cereal |> 
+  mutate(fruity = case_when(
+    str_detect(name, "Raisin|Fruit") & name != "Fruity Pebbles"  ~ "yes",
+    .default = "no"
+  ))
+```
+
+Let's inspect all of the rows where `fruity` is "yes" and make sure they're all truly cereals that contain fruit!  
+
+```{r}
+cereal |> 
+  filter(fruity == "yes") |> 
+  select(name) |> 
+  gt()
+```
+
+That looks right to me! Now, we can create a data set summarizing the mean weights of our two categories.  
+
+```{r}
+mean_weight_by_fruity <- 
+  cereal |> 
+  group_by(fruity) |> 
+  summarize(mean_weight = mean(weight_oz))
+
+mean_weight_by_fruity |> gt()
+```
+
+Let's create our plot to compare the average weights of fruity cereals vs non-fruity cereals.   
+
+```{r}
+mean_weight_by_fruity |> 
+  ggplot(aes(x = fruity,
+             y = mean_weight,
+             label = round(mean_weight, 2))) +
+  geom_col(fill = "dodgerblue3") +
+  geom_text(color = "white",
+            vjust = 1.3) +
+  labs(
+    title = "Cereals with Fruit Weigh More on Average",
+    x = NULL,
+    y = "Mean Weight per Serving (oz)"
+  ) +
+  scale_x_discrete(labels = c("Without Fruit", "With Fruit")) +
+  scale_y_continuous(limits = c(0, 1.25))
+```
+
