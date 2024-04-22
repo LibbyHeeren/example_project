@@ -1,0 +1,84 @@
+---
+title: "Examples of Ploty and Highcharts in R"
+author: "Libby Heeren"
+format: html
+---
+
+```{r}
+# Load packages and set theme
+library(tidyverse)
+library(plotly)
+library(highcharter)
+theme_set(theme_minimal())
+```
+
+
+
+Plotly via `ggplotly()`
+```{r}
+m = mpg
+
+gg <- ggplot(m, aes(x = cty, y = hwy)) + 
+  geom_point(aes(color = class, frame = class)) +
+  theme(legend.position = "none")
+
+ggplotly(gg)
+```
+
+Plain plotly in R
+```{r}
+e = economics
+
+p <- e %>%
+  plot_ly(
+    x = ~ date, 
+    y = ~ unemploy,
+    type = 'scatter',
+    mode = 'lines') %>% 
+  layout(
+    xaxis = list(
+      title = "Date",
+      zeroline = F),
+    yaxis = list(
+      title = "Unemployement in '000",
+      zeroline = F),
+    title = "Unemployment peaked after the financial crisis")
+p
+```
+
+highcharter
+```{r}
+m2 <- mpg[-which(mpg$cyl == 5 | mpg$class == "2seater"),] %>% 
+  group_by(class, cyl) %>%
+  summarize(AvgHwy = mean(hwy), .groups = 'drop')
+
+hchart(m2, "heatmap", hcaes(x = class, y = as.character(cyl), value = AvgHwy)) %>% 
+  hc_legend(align = "center")
+```
+
+highcharter again
+```{r}
+# Create a random sample of diamonds
+set.seed(2020)
+d1 <- diamonds[sample(nrow(diamonds), 1000),]
+
+# Plot it
+hchart(d1, "scatter", hcaes(x = carat, y = price, group = clarity)) %>%
+  hc_add_theme(hc_theme_flat()) %>% 
+  hc_title(text = "Variation in Diamond Prices Increases with Carats") %>%
+  hc_xAxis(title = list(text = "Weight of Diamonds in Carats")) %>%
+  hc_yAxis(title = list(text = "Price of Diamonds"))
+```
+
+highcharter with chalk theme
+```{r}
+hchart(e, "line", hcaes(x =  date, y = unemploy)) %>%
+    hc_add_theme(hc_theme_chalk(chart = list(backgroundColor = "#282a2e"))) %>%
+    hc_title(text = "Unemployment peaked after the financial crisis") %>%
+    hc_xAxis(title = list(text = "Date")) %>%
+    hc_yAxis(title = list(text = "Unemployment in '000")) %>% 
+    hc_add_series(data = e, name = "Unemployment", hcaes(x =  date, y = unemploy), type = "line", fontWeight = "bold") %>% 
+    hc_plotOptions(series = list(marker = list(symbol = "circle")))
+```
+
+
