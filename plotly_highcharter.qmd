@@ -11,7 +11,7 @@ library(plotly)
 library(highcharter)
 theme_set(theme_minimal())
 ```
-
+making an example change
 
 
 Plotly via `ggplotly()`
